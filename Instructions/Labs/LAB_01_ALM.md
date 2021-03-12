@@ -48,13 +48,16 @@ instructions to sign up.
     **Continue**. *Replace lastname with your last name, MM current month and YY
     current year.*
 
+    **Note:** For some users, the DevOps Organization is automatically created using your username.
+	This is OK and you do not need to rename the Organization.
+
     **Note:** For some users, this page has a heading “We need a few more
     details”. Ensure that you enter the organization name and not miss this
     step.
 
 6.  Enter **Device Management lastnameMMYY** for **Project Name** and click
     **Continue**. *Replace lastname with your Last name, MM with current month,
-    and YY with current year.* This will take 3-7 seconds to configure and
+    and YY with current year.* Select **Private**for **Project Visibility**. This will take 3-7 seconds to configure and
     navigate to the Project’s Home page.
 
 7.  Projects are containers in Azure DevOps that track work items and source
@@ -86,13 +89,17 @@ instructions to sign up.
 
 7.  Click to open the **Device Management lastnameMMYY** project you created.
 
-8.  Click **Project Settings**.
+8.  Click **Project Settings** in the bottom left corner of the Azure DevOps.
 
-9.  Select **Repositories**.
+9.  Select **Repositories** in the settings pane.
 
-10. Navigate to **Permissions** then select **Project Collection Build Service Accounts**
+10. Navigate to the **Permissions** tab then select **Project Collection Build Service Accounts**
 
-11. Locate the **Contribute** and set it to **Allow**.
+11. Locate **Contribute** and set it to **Allow**.
+
+12. Search for **Project Collection Build Service** and select the Project Collection without Accounts at the end of the name.
+
+13. Locate **Contribute** and set it to **Allow**.
 
 **Exercise 2: Build Export Pipeline**
 -------------------------------------
@@ -111,7 +118,7 @@ solution to test/production.
 
     2.  Click **Create Pipeline**.
 
-    3.  Click **Use the Classic Editor.**
+    3.  Click **Use the Classic Editor to create a pipeline without YAML.**
 
     4.  Click **Continue**. Do not change the default values.
 
@@ -127,12 +134,11 @@ solution to test/production.
 
     1.  Click **+ Add Task** to **Agent Job 1**.
 
-    2.  Search for **PowerApps Tool** hover over select **PowerApps Tool
-        Installer** and click **Add**.
+    2.  Search for **PowerApps Tool** hover over select **PowerApps Tool Installer** and click **Add**.
 
 3.  Add PowerApps Export Solution task.  This is found under **Deprecated Tasks**
 
-    1.  Search for **Export.**
+    1.  Search for **Export**
 
     2.  Hover over **PowerApps Export Solution** and click **Add**.
 
@@ -146,10 +152,6 @@ solution to test/production.
         <https://admin.powerplatform.microsoft.com>. Use the same credentials
         that you are using in Azure DevOps to log in.
         
-       **Note**: To make sure that the required solution exists, log on to
-        <https://make.powerapps.com/> and make sure you are in the **Device
-        Ordering Development** environment. Select **Solutions** from the left
-        menu and you should see the Device Ordering Development solution.
 
     2.  Select **Environments** and click to open the **Device Ordering
         Development** environment.
@@ -157,9 +159,19 @@ solution to test/production.
     3.  Copy the **Environment URL** and keep it in your clipboard. Keep this
         URL on a notepad.
 
+       **Note**: If the **Device Ordering Development** environment is not listed in the
+       Power Platform Admin Centre, log on to <https://make.powerapps.com/> and click on **Apps**.
+       Click on **Device Procurement** app to play the app.
+       Copy the **URL** from the browser app up to and including dynamics.com.
+
+       **Note**: To make sure that the required solution exists, log on to
+        <https://make.powerapps.com/> and make sure you are in the **Device
+        Ordering Development** environment. Select **Solutions** from the left
+        menu and you should see the **Contoso Device Order Management** unmanaged solution.
+
     4.  Close the **Power Platform Admin** browser window or tab.
 
-    5.  Close the **Solutions** browser window.
+    5.  Close the **Maker Portal** browser window or tab.
 
 6.  Create a **Generic Service Connection.** Service Connections are how the
     build tasks know what environment URL and user credentials to use to access
@@ -170,14 +182,14 @@ solution to test/production.
     2.  Make sure you still have the **PowerApps Export Solution** task
         selected.
 
-    3.  Click **Manage**. This will open a new window.
+    3.  Click **Manage** next to Service Connection. This will open a new window.
 
     4.  Click **Create Service Connection**.
 
     5.  Search and Select **Generic** and click **Next**.
 
-    6.  Paste the **Environment URL** you copied, provide your credentials,
-        provide the **Connection Name** as Dev Connection, and click **Save**.
+    6.  Paste the **Environment URL** you copied (the URL should begin with https://), provide your credentials,
+        provide the **Connection Name** as **Dev Connection**, and click **Save**.
 
     7.  Make sure that the connection is created and then close the **Service
         Connections** browser window or tab.
@@ -213,7 +225,7 @@ solution to test/production.
     9.  Check the **Export as Managed Solution**.
 
 8.  Add an Unpack task. This task will take the solution zip file and expand it
-    into a file for each solution component.
+    into a file for each solution component. This is found under **Deprecated Tasks**.
 
     1.  Click **+ Add Task**.
 
@@ -233,12 +245,16 @@ solution to test/production.
     3.  Choose **Both** for Type of Solution.
 
 10. Allow scripts to access the OAuth Token. This will allow the commands you
-    will add to check in files to the Azure DevOps repo to work.
+    will add to check in files to the Azure DevOps repo to work. **This is a very important step which if skipped will cause the pipeline to fail**.
 
     1.  Select **Agent Job 1**.
 
     2.  Scroll down and check the **Allow Scripts to Access the OAuth Token**
         checkbox.
+
+    3.  Click **Save and Queue** and select **Save**.
+
+    4.  Click **Save** again.
 
 11. Add Command Line task.
 
@@ -258,14 +274,13 @@ solution to test/production.
 
     ```
     echo commit all changes
-    git config user.email "user\@myorg.onmicrosoft.com"
+    git config user.email "user@myorg.onmicrosoft.com"
     git config user.name "Automatic Build"
-    git checkout master
+    git checkout main
     git add --all
     git commit -m "solution updates"
     echo push code to new repo
-    git -c http.extraheader="AUTHORIZATION: bearer \$(System.AccessToken)" push
-    origin master
+    git -c http.extraheader="AUTHORIZATION: bearer \$(System.AccessToken)" push origin main
     ```
 
 13.  Add Solution Name variable.
@@ -284,13 +299,17 @@ solution to test/production.
 
 14.  Allow Contribute for Build Service.
 
-   1.  Click **Project Settings**.
+   1.  Click **Project Settings** in the bottom left corner of the Azure DevOps.
 
-   2.  Select **Repositories**.
+   2.  Select **Repositories** in the settings pane.
 
-   3.  Select **Device Management**.
+   3. Navigate to the **Permissions** tab
+ 
+   4.  Select **Device Management lastnameMMYY Build Service** user. 
+   
+       **Note**: If the Azure DevOps Organization was generated automatically, the name maybe slightly different.
 
-   4.  Locate **Contribute** and set it to **Allow**.
+   5.  Locate **Contribute** and set it to **Allow**.
 
 **Exercise 3: Test the Pipeline**
 ---------------------------------
@@ -315,8 +334,6 @@ In this exercise, you will test the build pipeline you created.
     6.  Wait for the job to complete. The job should run and succeed. Click to
         open it.
 
-    7.  The jobs tasks should look like the image below.
-
 2.  Review the Repository.
 
     1.  Select Repos.
@@ -324,9 +341,7 @@ In this exercise, you will test the build pipeline you created.
     2.  You should see **ContosoDeviceOrderManagement** folder. Click to open
         the folder.
 
-    3.  The content of the folder should look like the image below.
-
-    4.  You may examine the content of each folder.
+    3.  You may examine the content of each folder.
 
 **Exercise 4: Build Manage Solution and Publish Artifacts**
 -----------------------------------------------------------
@@ -362,10 +377,10 @@ those extra steps to ensure you have enough time to complete the lab.
 8.  Click **Add a Task to Agent Job 1**.
 
 9.  Search for **PowerApps Tool**, hover over **PowerApps Tool Installer** and
-    click **Add**.
+    click **Add**. This is found under **Deprecated Tasks**.
 
 10. Search for **PowerApps Pack**, hover over **PowerApps Pack Solution** and
-    click **Add**.
+    click **Add**. This is found under **Deprecated Tasks**.
 
 11. Select the **PowerApps Pack Solution** task.
 
@@ -383,14 +398,14 @@ those extra steps to ensure you have enough time to complete the lab.
 
 15. Select the **Tasks** tab and click **Add a Task**.
 
-16. Search **Publish Pipeline**, hover over **Publish Pipeline Artifact** and
+16. Search **Publish Pipeline**, hover over **Publish Pipeline Artifacts** and
     click **Add**. Publishing the solution as an artifact will make it available
     for the release pipeline you will build.
 
-17. Select the Publish Pipeline Artifact task.
+17. Select the **Publish Pipeline Artifact** task.
 
 18. Enter **\$(Build.ArtifactStagingDirectory)\\\$(SolutionName)_managed.zip**
-    for **File or Directory Path** and enter drop for **Artifact Name**. Ensure
+    for **File or directory Path** and enter **drop** for **Artifact Name**. Ensure
     that there are no white spaces while entering the above values.
 
 19. Click **Save and Queue** and select **Save and Queue**.
@@ -401,11 +416,11 @@ those extra steps to ensure you have enough time to complete the lab.
 
 22. Job tasks should run and succeed. Click to open the job.
 
-23. Job tasks should look like the image below. click on the **Artifact** link.  
-    **Note:** If you do not see the artifacts, refresh the browser and it will
+23. Click on the **Artifact** link.  
+    **Note:** The artifcat link can be found by selecting **Agent job 1**. If you do not see the artifacts, refresh the browser and it will
     appear.
 
-24. Expand the folder and you should see the managed solution. Click **Close**.
+24. Expand the **drop** folder and you should see the managed solution.
 
 **Exercise 5: Build a Release Pipeline**
 ----------------------------------------
@@ -429,13 +444,13 @@ environment.
 
 4.  Go to the **Pipelines** area and select **Service Connections**.
 
-5.  Click **+ New Service Connection**.
+5.  Click **New Service Connection**.
 
 6.  Select **Generic** and click **Next**.
 
 7.  In a new tab, log on to <https://admin.powerplatform.microsoft.com>
 
-8.  Select **Environments** and click to open the **prod-labadminx** environment
+8.  Select **Environments** and click to open the **Prod - labadminx** environment
     where x is a number.
 
 9.  Right click on the **URL** and select **Copy Link**.
@@ -459,17 +474,16 @@ environment.
 17. Select the **Tasks** tab and click **+ Add Task**.
 
 18. Search for **PowerApps Tool**, hover over **PowerApps Tool Installer** and
-    click **Add**.
+    click **Add**. This is found under **Deprecated Tasks**.
 
 19. Search for **PowerApps Import**, hover over **PowerApps Import Solution**
-    and click **Add**.
+    and click **Add**. This is found under **Deprecated Tasks**.
 
 20. Select the **PowerApps Import Solution** task.
 
 21. Select the **Test Connection** for Environment and enter
-    **\$(System.DefaultWorkingDirectory)/_Build Managed
-    Solution/drop/\$(SolutionName)_managed.zip** for **Solution Input File**.
-    Ensure that there are no white spaces while entering the above values.
+    **\$(System.DefaultWorkingDirectory)/_Build Managed Solution/drop/\$(SolutionName)_managed.zip** for **Solution Input File**.
+    **Note**: There are spaces around the word Managed.
 
 22. Select the **Variables** tab and click **+ Add**.
 
@@ -487,7 +501,7 @@ environment.
 
 28. Wait for the release tasks to complete. The release pipeline should succeed.
 
-29. Log on to <https://make.powerapps.com> and select **prod-labadminx**
+29. Log on to <https://make.powerapps.com> and select the **Prod - labadminx**
     environment where x is a number.
 
 30. Select **Solutions**. You should see the managed solution you published from
