@@ -4,6 +4,7 @@
 #  Run  Start-MB600-Setup 
 #
 #  V1.0 - 2/21/2020 - inital version
+#  V1.1 - 3/03/2020 - Correct import of development solution
 
 #
 ####
@@ -24,25 +25,19 @@
 #   End of the configuraiton section
 ####
 
-Install-Module -Name Microsoft.PowerApps.Administration.PowerShell -Scope CurrentUser -Force 
-Install-Module -Name Microsoft.PowerApps.PowerShell  -Scope CurrentUser -AllowClobber -Force 
-
-Install-Module Microsoft.Xrm.OnlineManagementAPI -Scope CurrentUser
-Install-Module -Name Microsoft.Xrm.Data.Powershell -Scope CurrentUser
-
-Install-Module -Name MSOnline -Scope CurrentUser -RequiredVersion 1.1.166.0 
-Install-module azuread -Scope CurrentUser
-
-Import-Module Microsoft.PowerShell.Utility 
-
-
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12;
 
-
+Install-Module -Name Microsoft.PowerApps.Administration.PowerShell -Scope CurrentUser -Force 
+Install-Module -Name Microsoft.PowerApps.PowerShell -Scope CurrentUser -AllowClobber -Force 
+Install-Module Microsoft.Xrm.OnlineManagementAPI -Scope CurrentUser
+Install-Module -Name Microsoft.Xrm.Data.Powershell -Scope CurrentUser
+Install-Module -Name MSOnline -Scope CurrentUser -RequiredVersion 1.1.166.0 
+Install-module azuread -Scope CurrentUser
+Import-Module Microsoft.PowerShell.Utility 
 
 Write-Host "### Prepare to run Start-MB600-Setup ###" 
 Write-Host ""
-Write-Host "  Start-MB600-Setup -TenantName 'MX60265ABC'  -CDSLocation 'unitedstates' -UserCount 10 "-ForegroundColor Green     
+Write-Host "  Start-MB600-Setup -TenantName 'MX60265ABC'  -CDSLocation 'unitedstates' -UserCount 10"-ForegroundColor Green     
 Write-Host "  Parameters details for Start-MB600-Setup:"
 Write-Host "     TenantName : This is the name portion of name.onmicrosoft.com" -ForegroundColor Green  
 Write-Host "     CDSLocation: This must match be appropriate for Region e.g. US = unitedstates"  -ForegroundColor Green
@@ -58,16 +53,17 @@ function Start-MB600-Setup
 {
     <#
     .SYNOPSIS 
-      Configure a tenant for running an App in a day workshop
+      Configure a tenant for running an MB-600 ALM lab
     .EXAMPLE
      Start-MB600-Setup -TenantName 'MX60265ABC'  -CDSLocation 'unitedstates' -UserCount 10 
      
      TenantName : This is the name portion of name.onmicrosoft.com     
      CDSLocation: This must match be appropriate for Region e.g. US = unitedstates
      UserCount: This is a number between 1 and the max you have licenses for
-     APIUrl : You can find the url for your region here if not in US - https://docs.microsoft.com/en-us/dynamics365/customer-engagement/developer/online-management-api/get-started-online-management-api
      Solution : This allows you to specify a CDS Solution that will be pre-loaded into each student environment
      EnvSKU: This can be either Trial or Production, default is Trial
+     APIUrl : You can find the url for your region here if not in US - https://docs.microsoft.com/en-us/dynamics365/customer-engagement/developer/online-management-api/get-started-online-management-api
+     APIUrl : The APIUrl is not required as derived from CDSLocation
      DeleteUsers: This will delete/disable all other uses besides the one that runs this script - use $true to enable - default is $false
     #>
     param(
@@ -98,6 +94,7 @@ function Start-MB600-Setup
     $AdminAPIUrl = Get-AdminServiceUrl -CDSlocation $CDSlocation  -APIUrl $APIUrl
     Write-Host "CDS Location:" $CDSlocation
     Write-Host "User Count:" $UserCount
+    Write-Host "Solution:" $Solution
     $LabAdminCount = $UserCount
     
 
@@ -244,13 +241,18 @@ function Setup-DeviceOrderingSolution{
 
     ForEach ($environemnt in $envlist) { 
      
-         Write-Host "Processing environment :" $environemnt.FriendlyName
+        Write-Host "Processing environment :" $environemnt.FriendlyName
 
 
-         $conn = Connect-CrmOnline -Credential $UserCredential -ServerUrl $environemnt.ApplicationUrl
-         $conn.IsReady,$conn.ConnectedOrgFriendlyName
+        $conn = Connect-CrmOnline -Credential $UserCredential -ServerUrl $environemnt.ApplicationUrl
+        $conn.IsReady,$conn.ConnectedOrgFriendlyName
     
-        $solutionPath = $PSScriptRoot + "\ContosoDeviceOrderManagement_1_0_0_1.zip"
+        $solutionPath = ".\ContosoDeviceOrderManagement_1_0_0_1.zip"
+        
+        if ($PSScriptRoot -ne "" -and $PSScriptRoot -ne $null)
+        {
+           $solutionPath = $PSScriptRoot + "\ContosoDeviceOrderManagement_1_0_0_1.zip"
+        }
 
         Write-Host "Importing " $solutionPath
 
@@ -348,11 +350,11 @@ param(
     [string]$TenantName,
     [Parameter(Mandatory = $false)]
     [string]$CDSlocation="unitedstates",   
-       [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false)]
     [string]$APIUrl = "https://admin.services.crm.dynamics.com",
     [Parameter(Mandatory = $false)]
     [string]$Solution,
-     [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false)]
     [string]$EnvSKU="Trial"
     )
 
@@ -495,16 +497,16 @@ param(
     [string]$TenantName,
     [Parameter(Mandatory = $false)]
     [string]$CDSlocation="unitedstates",   
-       [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false)]
     [string]$APIUrl = "https://admin.services.crm.dynamics.com",
-     [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false)]
     [string]$Solution,
-     [Parameter(Mandatory = $false)]
+    [Parameter(Mandatory = $false)]
     [string]$EnvSKU="Trial"
     )
     Write-Host "Resume Starting"
 
-     Write-Host "Tenant:" $TenantName
+    Write-Host "Tenant:" $TenantName
     $Tenant = $TenantName;
     Write-Host "Region:" $Region
     $TenantRegioin = $Region;
